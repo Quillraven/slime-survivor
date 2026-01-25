@@ -20,11 +20,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 public class GameScreen extends ScreenAdapter {
     public static final float WORLD_WIDTH = 1920f;
     public static final float WORLD_HEIGHT = 1080f;
-    private static final float ATTACK_COOLDOWN = 1.0f;
-    private static final float ATTACK_DURATION = 0.2f;
     private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
-    private static final float HITBOX_SIZE = 60f;
-    private static final float HITBOX_OFFSET = 60f;
     private static final float DAMAGE_PER_SECOND = 1.0f;
 
     // General
@@ -39,10 +35,7 @@ public class GameScreen extends ScreenAdapter {
     private final Vector2 inputMovement = new Vector2();
 
     // Combat
-    private float attackTimer;
-    private float attackHitboxTimer;
-    private Rectangle attackHitbox;
-    private boolean attackActive;
+    private final Array<AttackHitbox> attackHitboxes = new Array<>();
 
     // Enemies
     private final Array<Enemy> enemies = new Array<>();
@@ -73,10 +66,7 @@ public class GameScreen extends ScreenAdapter {
     private void resetGame() {
         player.reset(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
 
-        attackTimer = 0f;
-        attackHitboxTimer = 0f;
-        attackActive = false;
-        attackHitbox = new Rectangle();
+        attackHitboxes.clear();
 
         enemies.clear();
         enemySpawnTimer = 0f;
@@ -121,18 +111,16 @@ public class GameScreen extends ScreenAdapter {
 
     private void updateLogic(float delta) {
         // Attack timer
-        attackTimer += delta;
-        if (attackTimer >= ATTACK_COOLDOWN) {
-            attackTimer = 0f;
+        if (player.canAttack(delta)) {
             triggerAttack();
         }
 
         // Attack hitbox duration
-        if (attackActive) {
-            attackHitboxTimer += delta;
-            if (attackHitboxTimer >= ATTACK_DURATION) {
-                attackActive = false;
-                attackHitboxTimer = 0f;
+        var iterator = attackHitboxes.iterator();
+        while (iterator.hasNext()) {
+            AttackHitbox attackHitbox = iterator.next();
+            if (attackHitbox.updateLifeSpan(delta)) {
+                iterator.remove();
             }
         }
 
@@ -144,24 +132,17 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Update enemies
-        float playerCenterX = player.getPosition().x + Player.SIZE * 0.5f;
-        float playerCenterY = player.getPosition().y + Player.SIZE * 0.5f;
+        float playerCenterX = player.getRect().getX() + Player.SIZE * 0.5f;
+        float playerCenterY = player.getRect().getY() + Player.SIZE * 0.5f;
         for (Enemy enemy : enemies) {
             enemy.update(playerCenterX, playerCenterY, delta);
         }
     }
 
     private void triggerAttack() {
-        attackActive = true;
-        attackHitboxTimer = 0f;
-
-        // Calculate hitbox position based on last movement direction
-        float playerCenterX = player.getPosition().x + Player.SIZE * 0.5f;
-        float playerCenterY = player.getPosition().y + Player.SIZE * 0.5f;
-        float hitboxX = playerCenterX - HITBOX_SIZE / 2 + player.getMoveDirection().x * HITBOX_OFFSET;
-        float hitboxY = playerCenterY - HITBOX_SIZE / 2 + player.getMoveDirection().y * HITBOX_OFFSET;
-
-        attackHitbox.set(hitboxX, hitboxY, HITBOX_SIZE, HITBOX_SIZE);
+        float hitboxX = player.getRect().getX() + Player.SIZE * 0.5f;
+        float hitboxY = player.getRect().getY() + Player.SIZE * 0.5f;
+        attackHitboxes.add(new AttackHitbox(hitboxX, hitboxY, player.getMoveDirection()));
     }
 
     private void spawnEnemy() {
@@ -192,11 +173,11 @@ public class GameScreen extends ScreenAdapter {
 
     private void checkCollisions(float delta) {
         // Check attack hitbox vs enemies
-        if (attackActive) {
+        for (AttackHitbox attackHitbox : attackHitboxes) {
             var iterator = enemies.iterator();
             while (iterator.hasNext()) {
                 Enemy enemy = iterator.next();
-                if (attackHitbox.overlaps(enemy.getRect())) {
+                if (attackHitbox.getRect().overlaps(enemy.getRect())) {
                     iterator.remove();
                     score++;
                 }
@@ -228,20 +209,20 @@ public class GameScreen extends ScreenAdapter {
 
         // Draw player (green)
         shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(player.getPosition().x, player.getPosition().y, Player.SIZE, Player.SIZE);
+        shapeRenderer.rect(player.getRect().getX(), player.getRect().getY(), Player.SIZE, Player.SIZE);
 
         // Draw enemies (red)
         shapeRenderer.setColor(Color.RED);
         for (Enemy enemy : enemies) {
-            shapeRenderer.rect(enemy.getPosition().x, enemy.getPosition().y, Enemy.ENEMY_SIZE, Enemy.ENEMY_SIZE);
+            shapeRenderer.rect(enemy.getRect().getX(), enemy.getRect().getY(), Enemy.ENEMY_SIZE, Enemy.ENEMY_SIZE);
         }
 
         // Draw attack hitbox (yellow)
-        if (attackActive) {
-            shapeRenderer.setColor(Color.YELLOW);
-            shapeRenderer.rect(attackHitbox.x, attackHitbox.y, attackHitbox.width, attackHitbox.height);
+        shapeRenderer.setColor(Color.YELLOW);
+        for (AttackHitbox attackHitbox : attackHitboxes) {
+            Rectangle rect = attackHitbox.getRect();
+            shapeRenderer.rect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
         }
-
         shapeRenderer.end();
 
         // Draw UI
