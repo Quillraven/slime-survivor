@@ -2,23 +2,22 @@ package io.github.quillraven.slimesurvivor;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class GameScreen implements Screen {
+public class GameScreen extends ScreenAdapter {
     private static final float WORLD_WIDTH = 1920f;
     private static final float WORLD_HEIGHT = 1080f;
     private static final float PLAYER_SIZE = 50f;
@@ -31,16 +30,18 @@ public class GameScreen implements Screen {
     private static final float HITBOX_OFFSET = 60f;
     private static final float DAMAGE_PER_SECOND = 1.0f;
 
-    private OrthographicCamera camera;
-    private Viewport viewport;
-    private ShapeRenderer shapeRenderer;
-    private SpriteBatch batch;
-    private BitmapFont font;
+    // General
+    private final Batch batch;
+    private final ShapeRenderer shapeRenderer;
+    private final OrthographicCamera camera = new OrthographicCamera();
+    private final Viewport viewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+    private final BitmapFont font;
 
     // Player
     private Vector2 playerPosition;
     private Rectangle playerRect;
-    private Vector2 lastMovementDirection;
+    private final Vector2 inputMovement = new Vector2();
+    private final Vector2 lastMovementDirection = new Vector2();
 
     // Combat
     private float attackTimer;
@@ -49,7 +50,7 @@ public class GameScreen implements Screen {
     private boolean attackActive;
 
     // Enemies
-    private List<Enemy> enemies;
+    private final Array<Enemy> enemies = new Array<>();
     private float enemySpawnTimer;
 
     // Game State
@@ -57,27 +58,35 @@ public class GameScreen implements Screen {
     private float life;
     private boolean gameOver;
 
+    public GameScreen(GdxGame game) {
+        this.batch = game.getBatch();
+        this.shapeRenderer = game.getShapeRenderer();
+
+        // Generate font from TrueType file
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("CherryCreamSoda-Regular.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 24;
+        parameter.color = Color.WHITE;
+        this.font = generator.generateFont(parameter);
+        generator.dispose();
+    }
+
     @Override
     public void show() {
-        camera = new OrthographicCamera();
-        viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+        resetGame();
+    }
 
-        shapeRenderer = new ShapeRenderer();
-        batch = new SpriteBatch();
-        font = new BitmapFont();
-        font.setColor(Color.WHITE);
-        font.getData().setScale(2f);
-
+    private void resetGame() {
         playerPosition = new Vector2(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
         playerRect = new Rectangle(playerPosition.x, playerPosition.y, PLAYER_SIZE, PLAYER_SIZE);
-        lastMovementDirection = new Vector2(1, 0); // Default facing right
+        lastMovementDirection.set(1, 0); // default facing right
 
         attackTimer = 0f;
         attackHitboxTimer = 0f;
         attackActive = false;
         attackHitbox = new Rectangle();
 
-        enemies = new ArrayList<>();
+        enemies.clear();
         enemySpawnTimer = 0f;
 
         score = 0;
@@ -90,32 +99,33 @@ public class GameScreen implements Screen {
         if (!gameOver) {
             processInput(delta);
             updateLogic(delta);
-            checkCollisions();
+            checkCollisions(delta);
+        } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            resetGame();
         }
 
         draw();
     }
 
     private void processInput(float delta) {
-        Vector2 movement = new Vector2();
-
+        inputMovement.setZero();
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            movement.y += 1;
+            inputMovement.y += 1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            movement.y -= 1;
+            inputMovement.y -= 1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            movement.x -= 1;
+            inputMovement.x -= 1;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            movement.x += 1;
+            inputMovement.x += 1;
         }
 
-        if (!movement.isZero()) {
-            movement.nor();
-            lastMovementDirection.set(movement);
-            playerPosition.mulAdd(movement, PLAYER_SPEED * delta);
+        if (!inputMovement.isZero()) {
+            inputMovement.nor();
+            lastMovementDirection.set(inputMovement);
+            playerPosition.mulAdd(inputMovement, PLAYER_SPEED * delta);
 
             // Clamp to screen bounds
             playerPosition.x = Math.clamp(playerPosition.x, 0, WORLD_WIDTH - PLAYER_SIZE);
@@ -151,7 +161,7 @@ public class GameScreen implements Screen {
 
         // Update enemies
         for (Enemy enemy : enemies) {
-            enemy.update(new Vector2(playerPosition.x + PLAYER_SIZE / 2, playerPosition.y + PLAYER_SIZE / 2), delta);
+            enemy.update(playerPosition.x + PLAYER_SIZE / 2, playerPosition.y + PLAYER_SIZE / 2, delta);
         }
     }
 
@@ -192,13 +202,13 @@ public class GameScreen implements Screen {
         enemies.add(new Enemy(x, y));
     }
 
-    private void checkCollisions() {
+    private void checkCollisions(float delta) {
         // Check attack hitbox vs enemies
         if (attackActive) {
             var iterator = enemies.iterator();
             while (iterator.hasNext()) {
                 Enemy enemy = iterator.next();
-                if (attackHitbox.overlaps(enemy.rect)) {
+                if (attackHitbox.overlaps(enemy.getRect())) {
                     iterator.remove();
                     score++;
                 }
@@ -206,16 +216,15 @@ public class GameScreen implements Screen {
         }
 
         // Check enemies vs player
-        boolean playerHit = false;
+        int numHits = 0;
         for (Enemy enemy : enemies) {
-            if (playerRect.overlaps(enemy.rect)) {
-                playerHit = true;
-                break;
+            if (playerRect.overlaps(enemy.getRect())) {
+                ++numHits;
             }
         }
 
-        if (playerHit) {
-            life -= DAMAGE_PER_SECOND * Gdx.graphics.getDeltaTime();
+        if (numHits > 0) {
+            life -= DAMAGE_PER_SECOND * numHits * delta;
             if (life <= 0) {
                 life = 0;
                 gameOver = true;
@@ -239,7 +248,7 @@ public class GameScreen implements Screen {
         // Draw enemies (red)
         shapeRenderer.setColor(Color.RED);
         for (Enemy enemy : enemies) {
-            shapeRenderer.rect(enemy.position.x, enemy.position.y, Enemy.ENEMY_SIZE, Enemy.ENEMY_SIZE);
+            shapeRenderer.rect(enemy.getPosition().x, enemy.getPosition().y, Enemy.ENEMY_SIZE, Enemy.ENEMY_SIZE);
         }
 
         // Draw attack hitbox (yellow)
@@ -256,7 +265,8 @@ public class GameScreen implements Screen {
         font.draw(batch, "Score: " + score, 20, WORLD_HEIGHT - 20);
         font.draw(batch, "Life: " + String.format("%.1f", life), 20, WORLD_HEIGHT - 60);
         if (gameOver) {
-            font.draw(batch, "GAME OVER", WORLD_WIDTH / 2 - 100, WORLD_HEIGHT / 2);
+            font.draw(batch, "GAME OVER", WORLD_WIDTH / 2 - 200, WORLD_HEIGHT / 2 + 50);
+            font.draw(batch, "Press R to Restart", WORLD_WIDTH / 2 - 250, WORLD_HEIGHT / 2 - 50);
         }
         batch.end();
     }
@@ -264,18 +274,6 @@ public class GameScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
-    }
-
-    @Override
-    public void hide() {
     }
 
     @Override
