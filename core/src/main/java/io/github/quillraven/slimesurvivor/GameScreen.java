@@ -132,16 +132,16 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Update enemies
-        float playerCenterX = player.getRect().getX() + Player.SIZE * 0.5f;
-        float playerCenterY = player.getRect().getY() + Player.SIZE * 0.5f;
+        float playerCenterX = player.getRect().getX() + player.getRect().getWidth() * 0.5f;
+        float playerCenterY = player.getRect().getY() + player.getRect().getHeight() * 0.5f;
         for (Enemy enemy : enemies) {
             enemy.update(playerCenterX, playerCenterY, delta);
         }
     }
 
     private void triggerAttack() {
-        float hitboxX = player.getRect().getX() + Player.SIZE * 0.5f;
-        float hitboxY = player.getRect().getY() + Player.SIZE * 0.5f;
+        float hitboxX = player.getRect().getX() + player.getRect().getWidth() * 0.5f;
+        float hitboxY = player.getRect().getY() + player.getRect().getHeight() * 0.5f;
         attackHitboxes.add(new AttackHitbox(hitboxX, hitboxY, player.getMoveDirection()));
     }
 
@@ -209,12 +209,12 @@ public class GameScreen extends ScreenAdapter {
 
         // Draw player (green)
         shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(player.getRect().getX(), player.getRect().getY(), Player.SIZE, Player.SIZE);
+        shapeRenderer.rect(player.getRect().getX(), player.getRect().getY(), player.getRect().getWidth(), player.getRect().getHeight());
 
         // Draw enemies (red)
         shapeRenderer.setColor(Color.RED);
         for (Enemy enemy : enemies) {
-            shapeRenderer.rect(enemy.getRect().getX(), enemy.getRect().getY(), Enemy.ENEMY_SIZE, Enemy.ENEMY_SIZE);
+            shapeRenderer.rect(enemy.getRect().getX(), enemy.getRect().getY(), enemy.getRect().getWidth(), enemy.getRect().getHeight());
         }
 
         // Draw attack hitbox (yellow)

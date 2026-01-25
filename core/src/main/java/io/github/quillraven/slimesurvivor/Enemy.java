@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 public class Enemy {
     public static final float ENEMY_SIZE = 40f;
-    public static final float ENEMY_SPEED = 150f;
+    private static final float ENEMY_SPEED = 150f;
 
     private final Rectangle rect;
 

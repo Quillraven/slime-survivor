@@ -4,8 +4,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
 public class Player {
-    public static final float SIZE = 50f;
-    private static final float SPEED = 300f;
+    private static final float SIZE = 50f;
+    private static final float SPEED = 220f;
     private static final float LIFE = 5f;
     private static final float ATTACK_COOLDOWN = 1.0f;
 
