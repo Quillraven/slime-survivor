@@ -1,15 +1,11 @@
 package io.github.quillraven.slimesurvivor;
 
-import com.badlogic.gdx.math.Rectangle;
-
-public class Enemy {
-    public static final float ENEMY_SIZE = 40f;
-    private static final float ENEMY_SPEED = 150f;
-
-    private final Rectangle rect;
+public class Enemy extends GameObject {
+    public static final float SIZE = 40f;
+    private static final float SPEED = 150f;
 
     public Enemy(float x, float y) {
-        rect = new Rectangle(x, y, ENEMY_SIZE, ENEMY_SIZE);
+        super(x, y, SIZE, SIZE);
     }
 
     void update(float playerX, float playerY, float delta) {
@@ -22,12 +18,8 @@ public class Enemy {
         }
 
         rect.setPosition(
-            rect.getX() + directionX * ENEMY_SPEED * delta,
-            rect.getY() + directionY * ENEMY_SPEED * delta
+            rect.getX() + directionX * SPEED * delta,
+            rect.getY() + directionY * SPEED * delta
         );
-    }
-
-    public Rectangle getRect() {
-        return rect;
     }
 }

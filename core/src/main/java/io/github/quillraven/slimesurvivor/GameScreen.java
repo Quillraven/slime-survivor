@@ -160,10 +160,10 @@ public class GameScreen extends ScreenAdapter {
             }
             case 2 -> { // Bottom
                 x = MathUtils.random(0, 1) * WORLD_WIDTH;
-                y = -Enemy.ENEMY_SIZE;
+                y = -Enemy.SIZE;
             }
             default -> { // Left
-                x = -Enemy.ENEMY_SIZE;
+                x = -Enemy.SIZE;
                 y = MathUtils.random(0, 1) * WORLD_HEIGHT;
             }
         }
@@ -177,7 +177,7 @@ public class GameScreen extends ScreenAdapter {
             var iterator = enemies.iterator();
             while (iterator.hasNext()) {
                 Enemy enemy = iterator.next();
-                if (attackHitbox.getRect().overlaps(enemy.getRect())) {
+                if (attackHitbox.overlaps(enemy)) {
                     iterator.remove();
                     score++;
                 }
@@ -187,7 +187,7 @@ public class GameScreen extends ScreenAdapter {
         // Check enemies vs player
         int numHits = 0;
         for (Enemy enemy : enemies) {
-            if (player.getRect().overlaps(enemy.getRect())) {
+            if (player.overlaps(enemy)) {
                 ++numHits;
             }
         }

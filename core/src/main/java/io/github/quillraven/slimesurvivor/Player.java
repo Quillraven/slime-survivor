@@ -1,20 +1,19 @@
 package io.github.quillraven.slimesurvivor;
 
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
-public class Player {
+public class Player extends GameObject {
     private static final float SIZE = 50f;
     private static final float SPEED = 220f;
     private static final float LIFE = 5f;
     private static final float ATTACK_COOLDOWN = 1.0f;
 
-    private final Rectangle rect = new Rectangle(0, 0, SIZE, SIZE);
     private final Vector2 moveDirection = new Vector2(1, 0); // default facing right
     private float life = LIFE;
     private float attackTimer;
 
     public Player(float x, float y) {
+        super(x, y, SIZE, SIZE);
         reset(x, y);
     }
 
@@ -38,10 +37,6 @@ public class Player {
 
     public Vector2 getMoveDirection() {
         return moveDirection;
-    }
-
-    public Rectangle getRect() {
-        return rect;
     }
 
     public float getLife() {
