@@ -18,11 +18,8 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen extends ScreenAdapter {
-    private static final float WORLD_WIDTH = 1920f;
-    private static final float WORLD_HEIGHT = 1080f;
-    private static final float PLAYER_SIZE = 50f;
-    private static final float PLAYER_SPEED = 300f;
-    private static final float PLAYER_LIFE = 5f;
+    public static final float WORLD_WIDTH = 1920f;
+    public static final float WORLD_HEIGHT = 1080f;
     private static final float ATTACK_COOLDOWN = 1.0f;
     private static final float ATTACK_DURATION = 0.2f;
     private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
@@ -38,10 +35,8 @@ public class GameScreen extends ScreenAdapter {
     private final BitmapFont font;
 
     // Player
-    private Vector2 playerPosition;
-    private Rectangle playerRect;
+    private final Player player = new Player(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
     private final Vector2 inputMovement = new Vector2();
-    private final Vector2 lastMovementDirection = new Vector2();
 
     // Combat
     private float attackTimer;
@@ -55,7 +50,6 @@ public class GameScreen extends ScreenAdapter {
 
     // Game State
     private int score;
-    private float life;
     private boolean gameOver;
 
     public GameScreen(GdxGame game) {
@@ -77,9 +71,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void resetGame() {
-        playerPosition = new Vector2(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
-        playerRect = new Rectangle(playerPosition.x, playerPosition.y, PLAYER_SIZE, PLAYER_SIZE);
-        lastMovementDirection.set(1, 0); // default facing right
+        player.reset(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
 
         attackTimer = 0f;
         attackHitboxTimer = 0f;
@@ -90,7 +82,6 @@ public class GameScreen extends ScreenAdapter {
         enemySpawnTimer = 0f;
 
         score = 0;
-        life = PLAYER_LIFE;
         gameOver = false;
     }
 
@@ -124,14 +115,7 @@ public class GameScreen extends ScreenAdapter {
 
         if (!inputMovement.isZero()) {
             inputMovement.nor();
-            lastMovementDirection.set(inputMovement);
-            playerPosition.mulAdd(inputMovement, PLAYER_SPEED * delta);
-
-            // Clamp to screen bounds
-            playerPosition.x = Math.clamp(playerPosition.x, 0, WORLD_WIDTH - PLAYER_SIZE);
-            playerPosition.y = Math.clamp(playerPosition.y, 0, WORLD_HEIGHT - PLAYER_SIZE);
-
-            playerRect.setPosition(playerPosition.x, playerPosition.y);
+            player.move(inputMovement, delta);
         }
     }
 
@@ -160,8 +144,10 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Update enemies
+        float playerCenterX = player.getPosition().x + Player.SIZE * 0.5f;
+        float playerCenterY = player.getPosition().y + Player.SIZE * 0.5f;
         for (Enemy enemy : enemies) {
-            enemy.update(playerPosition.x + PLAYER_SIZE / 2, playerPosition.y + PLAYER_SIZE / 2, delta);
+            enemy.update(playerCenterX, playerCenterY, delta);
         }
     }
 
@@ -170,8 +156,10 @@ public class GameScreen extends ScreenAdapter {
         attackHitboxTimer = 0f;
 
         // Calculate hitbox position based on last movement direction
-        float hitboxX = playerPosition.x + PLAYER_SIZE / 2 - HITBOX_SIZE / 2 + lastMovementDirection.x * HITBOX_OFFSET;
-        float hitboxY = playerPosition.y + PLAYER_SIZE / 2 - HITBOX_SIZE / 2 + lastMovementDirection.y * HITBOX_OFFSET;
+        float playerCenterX = player.getPosition().x + Player.SIZE * 0.5f;
+        float playerCenterY = player.getPosition().y + Player.SIZE * 0.5f;
+        float hitboxX = playerCenterX - HITBOX_SIZE / 2 + player.getMoveDirection().x * HITBOX_OFFSET;
+        float hitboxY = playerCenterY - HITBOX_SIZE / 2 + player.getMoveDirection().y * HITBOX_OFFSET;
 
         attackHitbox.set(hitboxX, hitboxY, HITBOX_SIZE, HITBOX_SIZE);
     }
@@ -218,17 +206,14 @@ public class GameScreen extends ScreenAdapter {
         // Check enemies vs player
         int numHits = 0;
         for (Enemy enemy : enemies) {
-            if (playerRect.overlaps(enemy.getRect())) {
+            if (player.getRect().overlaps(enemy.getRect())) {
                 ++numHits;
             }
         }
 
         if (numHits > 0) {
-            life -= DAMAGE_PER_SECOND * numHits * delta;
-            if (life <= 0) {
-                life = 0;
-                gameOver = true;
-            }
+            player.subLife(DAMAGE_PER_SECOND * numHits * delta);
+            gameOver = player.isDead();
         }
     }
 
@@ -243,7 +228,7 @@ public class GameScreen extends ScreenAdapter {
 
         // Draw player (green)
         shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(playerPosition.x, playerPosition.y, PLAYER_SIZE, PLAYER_SIZE);
+        shapeRenderer.rect(player.getPosition().x, player.getPosition().y, Player.SIZE, Player.SIZE);
 
         // Draw enemies (red)
         shapeRenderer.setColor(Color.RED);
@@ -263,7 +248,7 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         font.draw(batch, "Score: " + score, 20, WORLD_HEIGHT - 20);
-        font.draw(batch, "Life: " + String.format("%.1f", life), 20, WORLD_HEIGHT - 60);
+        font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 20, WORLD_HEIGHT - 60);
         if (gameOver) {
             font.draw(batch, "GAME OVER", WORLD_WIDTH / 2 - 200, WORLD_HEIGHT / 2 + 50);
             font.draw(batch, "Press R to Restart", WORLD_WIDTH / 2 - 250, WORLD_HEIGHT / 2 - 50);
