@@ -1,5 +1,7 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 public abstract class GameObject {
@@ -15,5 +17,10 @@ public abstract class GameObject {
 
     public Rectangle getRect() {
         return rect;
+    }
+
+    public void drawDebug(ShapeRenderer shapeRenderer, Color color) {
+        shapeRenderer.setColor(color);
+        shapeRenderer.rect(rect.x, rect.y, rect.width, rect.height);
     }
 }

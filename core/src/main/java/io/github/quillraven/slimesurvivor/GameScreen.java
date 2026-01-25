@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -208,20 +207,16 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // Draw player (green)
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(player.getRect().getX(), player.getRect().getY(), player.getRect().getWidth(), player.getRect().getHeight());
+        player.drawDebug(shapeRenderer, Color.GREEN);
 
         // Draw enemies (red)
-        shapeRenderer.setColor(Color.RED);
         for (Enemy enemy : enemies) {
-            shapeRenderer.rect(enemy.getRect().getX(), enemy.getRect().getY(), enemy.getRect().getWidth(), enemy.getRect().getHeight());
+            enemy.drawDebug(shapeRenderer, Color.RED);
         }
 
         // Draw attack hitbox (yellow)
-        shapeRenderer.setColor(Color.YELLOW);
         for (AttackHitbox attackHitbox : attackHitboxes) {
-            Rectangle rect = attackHitbox.getRect();
-            shapeRenderer.rect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+            attackHitbox.drawDebug(shapeRenderer, Color.YELLOW);
         }
         shapeRenderer.end();
 
