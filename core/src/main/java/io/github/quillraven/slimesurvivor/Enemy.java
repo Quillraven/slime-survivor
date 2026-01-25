@@ -1,8 +1,8 @@
 package io.github.quillraven.slimesurvivor;
 
 public class Enemy extends GameObject {
-    public static final float SIZE = 40f;
-    private static final float SPEED = 150f;
+    public static final float SIZE = 0.75f;
+    private static final float SPEED = 1.5f;
 
     public Enemy(float x, float y) {
         super(x, y, SIZE, SIZE);

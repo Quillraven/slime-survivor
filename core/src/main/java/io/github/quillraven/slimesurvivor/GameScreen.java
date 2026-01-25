@@ -4,8 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -13,24 +11,26 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class GameScreen extends ScreenAdapter {
-    public static final float WORLD_WIDTH = 1920f;
-    public static final float WORLD_HEIGHT = 1080f;
+    private static final float WORLD_WIDTH = 16f;
+    private static final float WORLD_HEIGHT = 9f;
     private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
     private static final float DAMAGE_PER_SECOND = 1.0f;
 
     // General
     private final Batch batch;
     private final ShapeRenderer shapeRenderer;
-    private final OrthographicCamera camera = new OrthographicCamera();
-    private final Viewport viewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
+    private final Viewport gameViewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT);
+    private final Viewport uiViewport = new ScreenViewport();
     private final BitmapFont font;
 
     // Player
-    private final Player player = new Player(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+    private final Player player = new Player(gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f);
     private final Vector2 inputMovement = new Vector2();
 
     // Combat
@@ -42,7 +42,6 @@ public class GameScreen extends ScreenAdapter {
 
     // Game State
     private int score;
-    private boolean gameOver;
 
     public GameScreen(GdxGame game) {
         this.batch = game.getBatch();
@@ -63,7 +62,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void resetGame() {
-        player.reset(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+        player.reset(gameViewport.getWorldWidth() / 2, gameViewport.getWorldHeight() / 2);
 
         attackHitboxes.clear();
 
@@ -71,12 +70,11 @@ public class GameScreen extends ScreenAdapter {
         enemySpawnTimer = 0f;
 
         score = 0;
-        gameOver = false;
     }
 
     @Override
     public void render(float delta) {
-        if (!gameOver) {
+        if (!player.isDead()) {
             processInput(delta);
             updateLogic(delta);
             checkCollisions(delta);
@@ -104,7 +102,7 @@ public class GameScreen extends ScreenAdapter {
 
         if (!inputMovement.isZero()) {
             inputMovement.nor();
-            player.move(inputMovement, delta);
+            player.move(inputMovement, delta, gameViewport.getWorldWidth(), gameViewport.getWorldHeight());
         }
     }
 
@@ -150,20 +148,20 @@ public class GameScreen extends ScreenAdapter {
 
         switch (edge) {
             case 0 -> { // Top
-                x = MathUtils.random(0, 1) * WORLD_WIDTH;
-                y = WORLD_HEIGHT;
+                x = MathUtils.random(0, 1) * gameViewport.getWorldWidth();
+                y = gameViewport.getWorldHeight();
             }
             case 1 -> { // Right
-                x = WORLD_WIDTH;
-                y = MathUtils.random(0, 1) * WORLD_HEIGHT;
+                x = gameViewport.getWorldWidth();
+                y = MathUtils.random(0, 1) * gameViewport.getWorldHeight();
             }
             case 2 -> { // Bottom
-                x = MathUtils.random(0, 1) * WORLD_WIDTH;
+                x = MathUtils.random(0, 1) * gameViewport.getWorldWidth();
                 y = -Enemy.SIZE;
             }
             default -> { // Left
                 x = -Enemy.SIZE;
-                y = MathUtils.random(0, 1) * WORLD_HEIGHT;
+                y = MathUtils.random(0, 1) * gameViewport.getWorldHeight();
             }
         }
 
@@ -193,17 +191,15 @@ public class GameScreen extends ScreenAdapter {
 
         if (numHits > 0) {
             player.subLife(DAMAGE_PER_SECOND * numHits * delta);
-            gameOver = player.isDead();
         }
     }
 
     private void draw() {
-        Gdx.gl.glClearColor(0.2f, 0.2f, 0.2f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        ScreenUtils.clear(Color.BLACK);
 
-        viewport.apply();
+        gameViewport.apply();
 
-        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // Draw player (green)
@@ -221,20 +217,22 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.end();
 
         // Draw UI
-        batch.setProjectionMatrix(camera.combined);
+        uiViewport.apply();
+        batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
-        font.draw(batch, "Score: " + score, 20, WORLD_HEIGHT - 20);
-        font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 20, WORLD_HEIGHT - 60);
-        if (gameOver) {
-            font.draw(batch, "GAME OVER", WORLD_WIDTH / 2 - 200, WORLD_HEIGHT / 2 + 50);
-            font.draw(batch, "Press R to Restart", WORLD_WIDTH / 2 - 250, WORLD_HEIGHT / 2 - 50);
+        font.draw(batch, "Score: " + score, 20, uiViewport.getWorldHeight() - 20);
+        font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 20, uiViewport.getWorldHeight() - 60);
+        if (player.isDead()) {
+            font.draw(batch, "GAME OVER", uiViewport.getWorldWidth() / 2 - 200, uiViewport.getWorldHeight() / 2 + 50);
+            font.draw(batch, "Press R to Restart", uiViewport.getWorldWidth() / 2 - 250, uiViewport.getWorldHeight() / 2 - 50);
         }
         batch.end();
     }
 
     @Override
     public void resize(int width, int height) {
-        viewport.update(width, height, true);
+        gameViewport.update(width, height, true);
+        uiViewport.update(width, height, true);
     }
 
     @Override

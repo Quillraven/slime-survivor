@@ -3,8 +3,8 @@ package io.github.quillraven.slimesurvivor;
 import com.badlogic.gdx.math.Vector2;
 
 public class Player extends GameObject {
-    private static final float SIZE = 50f;
-    private static final float SPEED = 220f;
+    private static final float SIZE = 0.75f;
+    private static final float SPEED = 2f;
     private static final float LIFE = 5f;
     private static final float ATTACK_COOLDOWN = 1.0f;
 
@@ -23,14 +23,14 @@ public class Player extends GameObject {
         attackTimer = ATTACK_COOLDOWN;
     }
 
-    public void move(Vector2 direction, float delta) {
+    public void move(Vector2 direction, float delta, float maxW, float maxH) {
         moveDirection.set(direction);
         float newX = rect.getX() + direction.x * SPEED * delta;
         float newY = rect.getY() + direction.y * SPEED * delta;
 
         // Clamp to screen bounds
-        newX = Math.clamp(newX, 0, GameScreen.WORLD_WIDTH - SIZE);
-        newY = Math.clamp(newY, 0, GameScreen.WORLD_HEIGHT - SIZE);
+        newX = Math.clamp(newX, 0, maxW - rect.getWidth());
+        newY = Math.clamp(newY, 0, maxH - rect.getHeight());
 
         rect.setPosition(newX, newY);
     }

@@ -3,7 +3,7 @@ package io.github.quillraven.slimesurvivor;
 import com.badlogic.gdx.math.Vector2;
 
 public class AttackHitbox extends GameObject {
-    private static final float SIZE = 60f;
+    private static final float SIZE = 1f;
     private static final float DURATION = 0.2f;
 
     private float lifeSpan = DURATION;
