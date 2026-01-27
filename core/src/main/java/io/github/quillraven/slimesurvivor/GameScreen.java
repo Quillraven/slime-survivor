@@ -34,22 +34,12 @@ public class GameScreen extends ScreenAdapter {
     private final Texture bgdTexture = new Texture(Gdx.files.internal("bgd.png"));
     private final Texture playerTexture = new Texture(Gdx.files.internal("player.png"));
     private final Texture enemyTexture = new Texture(Gdx.files.internal("slime.png"));
-    private final Array<Texture> attackTextures = Array.with(
-        new Texture(Gdx.files.internal("slash_00.png")),
-        new Texture(Gdx.files.internal("slash_01.png")),
-        new Texture(Gdx.files.internal("slash_02.png")),
-        new Texture(Gdx.files.internal("slash_03.png")),
-        new Texture(Gdx.files.internal("slash_04.png")),
-        new Texture(Gdx.files.internal("slash_05.png")),
-        new Texture(Gdx.files.internal("slash_06.png")),
-        new Texture(Gdx.files.internal("slash_07.png")),
-        new Texture(Gdx.files.internal("slash_08.png")),
-        new Texture(Gdx.files.internal("slash_09.png")),
-        new Texture(Gdx.files.internal("slash_10.png")),
-        new Texture(Gdx.files.internal("slash_11.png")),
-        new Texture(Gdx.files.internal("slash_12.png")),
-        new Texture(Gdx.files.internal("slash_13.png"))
-    );
+    private final Array<Texture> attackTextures = new Array<>(14);
+    {
+        for (int i = 0; i <= 13; i++) {
+            attackTextures.add(new Texture(Gdx.files.internal(String.format("slash_%02d.png", i))));
+        }
+    }
     private final Animation<Texture> attackAnimation = new Animation<>(1 / 12f, attackTextures);
 
     // Player
