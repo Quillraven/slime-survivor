@@ -1,26 +1,30 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Player extends GameObject {
-    private static final float SIZE = 0.75f;
+    private static final float SCALE = 1 / 32f;
     private static final float SPEED = 2f;
     private static final float LIFE = 5f;
-    private static final float ATTACK_COOLDOWN = 1.0f;
+    private static final float ATTACK_COOLDOWN = 1.6f;
 
     private final Vector2 moveDirection = new Vector2(0, 0);
     private final Vector2 lastDirection = new Vector2(1, 0); // used for attacks; default is right
     private float life = LIFE;
     private float attackTimer;
     private final Array<AttackHitbox> attackHitboxes = new Array<>();
+    private final Animation<Texture> attackAnimation;
     private final Viewport gameViewport;
 
-    public Player(float x, float y, Viewport gameViewport) {
-        super(x, y, SIZE, SIZE);
+    public Player(float x, float y, Viewport gameViewport, Texture texture, Animation<Texture> attackAnimation) {
+        super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         reset(x, y);
         this.gameViewport = gameViewport;
+        this.attackAnimation = attackAnimation;
     }
 
     public void reset(float x, float y) {
@@ -35,7 +39,7 @@ public class Player extends GameObject {
         // Spawn new attack hitbox?
         if (canAttack(deltaTime)) {
             Vector2 playerCenter = getCenter(TMP_VEC2);
-            attackHitboxes.add(new AttackHitbox(playerCenter, lastDirection));
+            attackHitboxes.add(new AttackHitbox(playerCenter, lastDirection, attackAnimation));
         }
 
         // Update attack hitbox life spans

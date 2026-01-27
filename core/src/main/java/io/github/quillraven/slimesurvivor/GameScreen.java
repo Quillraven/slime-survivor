@@ -4,6 +4,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
@@ -20,6 +22,7 @@ public class GameScreen extends ScreenAdapter {
     private static final float WORLD_HEIGHT = 9f;
     private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
     private static final float DAMAGE_PER_SECOND = 1.0f;
+    private static final boolean DRAW_DEBUG = false;
 
     // General
     private final Batch batch;
@@ -28,8 +31,35 @@ public class GameScreen extends ScreenAdapter {
     private final Viewport uiViewport = new ScreenViewport();
     private final BitmapFont font;
 
+    // Assets
+    private final Texture bgdTexture = new Texture(Gdx.files.internal("bgd.png"));
+    private final Texture playerTexture = new Texture(Gdx.files.internal("player.png"));
+    private final Texture enemyTexture = new Texture(Gdx.files.internal("slime.png"));
+    private final Array<Texture> attackTextures = Array.with(
+        new Texture(Gdx.files.internal("slash_00.png")),
+        new Texture(Gdx.files.internal("slash_01.png")),
+        new Texture(Gdx.files.internal("slash_02.png")),
+        new Texture(Gdx.files.internal("slash_03.png")),
+        new Texture(Gdx.files.internal("slash_04.png")),
+        new Texture(Gdx.files.internal("slash_05.png")),
+        new Texture(Gdx.files.internal("slash_06.png")),
+        new Texture(Gdx.files.internal("slash_07.png")),
+        new Texture(Gdx.files.internal("slash_08.png")),
+        new Texture(Gdx.files.internal("slash_09.png")),
+        new Texture(Gdx.files.internal("slash_10.png")),
+        new Texture(Gdx.files.internal("slash_11.png")),
+        new Texture(Gdx.files.internal("slash_12.png")),
+        new Texture(Gdx.files.internal("slash_13.png"))
+    );
+    private final Animation<Texture> attackAnimation = new Animation<>(1 / 12f, attackTextures);
+
     // Player
-    private final Player player = new Player(gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f, gameViewport);
+    private final Player player = new Player(
+        gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f, // spawn location
+        gameViewport, // boundary
+        playerTexture, // graphic
+        attackAnimation // attack animation
+    );
     private final Vector2 inputMovement = new Vector2();
 
     // Enemies
@@ -106,7 +136,7 @@ public class GameScreen extends ScreenAdapter {
         enemySpawnTimer += deltaTime;
         if (enemySpawnTimer >= ENEMY_SPAWN_INTERVAL) {
             enemySpawnTimer = 0f;
-            Enemy newEnemy = Enemy.spawn(gameViewport, player);
+            Enemy newEnemy = Enemy.spawn(gameViewport, enemyTexture, player);
             enemies.add(newEnemy);
         }
 
@@ -147,22 +177,20 @@ public class GameScreen extends ScreenAdapter {
 
         gameViewport.apply();
 
-        shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        // Draw player (green)
-        player.drawDebug(shapeRenderer, Color.GREEN);
-
-        // Draw enemies (red)
+        // Draw textures
+        batch.setProjectionMatrix(gameViewport.getCamera().combined);
+        batch.begin();
+        batch.draw(bgdTexture, 0, 0, gameViewport.getWorldWidth(), gameViewport.getWorldHeight());
+        player.draw(batch);
         for (Enemy enemy : enemies) {
-            enemy.drawDebug(shapeRenderer, Color.RED);
+            enemy.draw(batch);
         }
-
-        // Draw attack hitbox (yellow)
         for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
-            attackHitbox.drawDebug(shapeRenderer, Color.YELLOW);
+            attackHitbox.draw(batch);
         }
-        shapeRenderer.end();
+        batch.end();
+
+        drawDebug();
 
         // Draw UI
         uiViewport.apply();
@@ -177,6 +205,29 @@ public class GameScreen extends ScreenAdapter {
         batch.end();
     }
 
+    private void drawDebug() {
+        if (!DRAW_DEBUG) {
+            return;
+        }
+
+        shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+        // Draw player (green)
+        player.drawDebug(shapeRenderer, Color.GREEN);
+
+        // Draw enemies (red)
+        for (Enemy enemy : enemies) {
+            enemy.drawDebug(shapeRenderer, Color.RED);
+        }
+
+        // Draw attack hitbox (yellow)
+        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
+            attackHitbox.drawDebug(shapeRenderer, Color.YELLOW);
+        }
+        shapeRenderer.end();
+    }
+
     @Override
     public void resize(int width, int height) {
         gameViewport.update(width, height, true);
@@ -188,5 +239,9 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.dispose();
         batch.dispose();
         font.dispose();
+        bgdTexture.dispose();
+        playerTexture.dispose();
+        enemyTexture.dispose();
+        attackTextures.forEach(Texture::dispose);
     }
 }

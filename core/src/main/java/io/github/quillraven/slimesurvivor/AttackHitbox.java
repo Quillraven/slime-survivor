@@ -1,23 +1,37 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 
 public class AttackHitbox extends GameObject {
     private static final float SIZE = 1f;
-    private static final float DURATION = 0.2f;
+    private static final float DURATION = 0.4f;
 
     private float lifeSpan = DURATION;
+    private final Animation<Texture> animation;
 
-    public AttackHitbox(Vector2 position, Vector2 direction) {
+    public AttackHitbox(Vector2 position, Vector2 direction, Animation<Texture> animation) {
         float hitboxX = position.x - SIZE / 2 + direction.x * SIZE * 0.75f;
         float hitboxY = position.y - SIZE / 2 + direction.y * SIZE * 0.75f;
         super(hitboxX, hitboxY, SIZE, SIZE);
+        this.animation = animation;
     }
 
     @Override
     void update(float deltaTime) {
         // Update life span
         this.lifeSpan -= deltaTime;
+    }
+
+    @Override
+    public void draw(Batch batch) {
+        float animationDuration = animation.getAnimationDuration();
+        float animationPerc = 1f - (Math.max(0f, lifeSpan) / DURATION);
+        float stateTime = animationDuration * animationPerc;
+        Texture keyFrame = animation.getKeyFrame(stateTime, true);
+        batch.draw(keyFrame, rect.x, rect.y, rect.width, rect.height);
     }
 
     public boolean isDone() {

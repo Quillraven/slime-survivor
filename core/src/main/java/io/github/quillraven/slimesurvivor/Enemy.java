@@ -1,17 +1,18 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Enemy extends GameObject {
-    private static final float SIZE = 0.75f;
+    private static final float SCALE = 1 / 64f;
     private static final float SPEED = 1.5f;
 
     private final Player player;
 
-    public Enemy(float x, float y, Player player) {
-        super(x, y, SIZE, SIZE);
+    public Enemy(float x, float y, Texture texture, Player player) {
+        super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         this.player = player;
     }
 
@@ -26,7 +27,7 @@ public class Enemy extends GameObject {
         rect.setPosition(rect.getX() + direction.x, rect.getY() + direction.y);
     }
 
-    public static Enemy spawn(Viewport gameViewport, Player player) {
+    public static Enemy spawn(Viewport gameViewport, Texture texture, Player player) {
         int edge = MathUtils.random(3); // 0: top, 1: right, 2: bottom, 3: left
         float x, y;
 
@@ -41,14 +42,14 @@ public class Enemy extends GameObject {
             }
             case 2 -> { // Bottom
                 x = MathUtils.random(0, 1) * gameViewport.getWorldWidth();
-                y = -Enemy.SIZE;
+                y = -texture.getHeight() * SCALE;
             }
             default -> { // Left
-                x = -Enemy.SIZE;
+                x = -texture.getWidth() * SCALE;
                 y = MathUtils.random(0, 1) * gameViewport.getWorldHeight();
             }
         }
 
-        return new Enemy(x, y, player);
+        return new Enemy(x, y, texture, player);
     }
 }
