@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -72,14 +71,7 @@ public class GameScreen extends ScreenAdapter {
     public GameScreen(GdxGame game) {
         this.batch = game.getBatch();
         this.shapeRenderer = game.getShapeRenderer();
-
-        // Generate font from TrueType file
-        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("CherryCreamSoda-Regular.ttf"));
-        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 24;
-        parameter.color = Color.WHITE;
-        this.font = generator.generateFont(parameter);
-        generator.dispose();
+        this.font = game.getFont();
     }
 
     @Override
@@ -181,13 +173,13 @@ public class GameScreen extends ScreenAdapter {
         batch.setProjectionMatrix(gameViewport.getCamera().combined);
         batch.begin();
         batch.draw(bgdTexture, 0, 0, gameViewport.getWorldWidth(), gameViewport.getWorldHeight());
-        player.draw(batch);
         for (Enemy enemy : enemies) {
             enemy.draw(batch);
         }
         for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
             attackHitbox.draw(batch);
         }
+        player.draw(batch);
         batch.end();
 
         drawDebug();
@@ -236,9 +228,6 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        shapeRenderer.dispose();
-        batch.dispose();
-        font.dispose();
         bgdTexture.dispose();
         playerTexture.dispose();
         enemyTexture.dispose();
