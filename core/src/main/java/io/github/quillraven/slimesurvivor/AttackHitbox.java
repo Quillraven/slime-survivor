@@ -8,14 +8,19 @@ public class AttackHitbox extends GameObject {
 
     private float lifeSpan = DURATION;
 
-    public AttackHitbox(float x, float y, Vector2 direction) {
-        float hitboxX = x - SIZE / 2 + direction.x * SIZE * 0.75f;
-        float hitboxY = y - SIZE / 2 + direction.y * SIZE * 0.75f;
+    public AttackHitbox(Vector2 position, Vector2 direction) {
+        float hitboxX = position.x - SIZE / 2 + direction.x * SIZE * 0.75f;
+        float hitboxY = position.y - SIZE / 2 + direction.y * SIZE * 0.75f;
         super(hitboxX, hitboxY, SIZE, SIZE);
     }
 
-    public boolean updateLifeSpan(float delta) {
-        this.lifeSpan -= delta;
+    @Override
+    void update(float deltaTime) {
+        // Update life span
+        this.lifeSpan -= deltaTime;
+    }
+
+    public boolean isDone() {
         return this.lifeSpan <= 0f;
     }
 }

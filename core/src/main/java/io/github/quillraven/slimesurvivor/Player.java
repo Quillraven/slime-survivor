@@ -1,6 +1,8 @@
 package io.github.quillraven.slimesurvivor;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Player extends GameObject {
     private static final float SIZE = 0.75f;
@@ -8,35 +10,66 @@ public class Player extends GameObject {
     private static final float LIFE = 5f;
     private static final float ATTACK_COOLDOWN = 1.0f;
 
-    private final Vector2 moveDirection = new Vector2(1, 0); // default facing right
+    private final Vector2 moveDirection = new Vector2(0, 0);
+    private final Vector2 lastDirection = new Vector2(1, 0); // used for attacks; default is right
     private float life = LIFE;
     private float attackTimer;
+    private final Array<AttackHitbox> attackHitboxes = new Array<>();
+    private final Viewport gameViewport;
 
-    public Player(float x, float y) {
+    public Player(float x, float y, Viewport gameViewport) {
         super(x, y, SIZE, SIZE);
         reset(x, y);
+        this.gameViewport = gameViewport;
     }
 
     public void reset(float x, float y) {
         rect.setPosition(x, y);
         life = LIFE;
         attackTimer = ATTACK_COOLDOWN;
+        attackHitboxes.clear();
     }
 
-    public void move(Vector2 direction, float delta, float maxW, float maxH) {
-        moveDirection.set(direction);
-        float newX = rect.getX() + direction.x * SPEED * delta;
-        float newY = rect.getY() + direction.y * SPEED * delta;
+    @Override
+    void update(float deltaTime) {
+        // Spawn new attack hitbox?
+        if (canAttack(deltaTime)) {
+            Vector2 playerCenter = getCenter(TMP_VEC2);
+            attackHitboxes.add(new AttackHitbox(playerCenter, lastDirection));
+        }
+
+        // Update attack hitbox life spans
+        var iterator = attackHitboxes.iterator();
+        while (iterator.hasNext()) {
+            AttackHitbox attackHitbox = iterator.next();
+            attackHitbox.update(deltaTime);
+            if (attackHitbox.isDone()) {
+                iterator.remove();
+            }
+        }
+
+        // Move player
+        move(deltaTime);
+    }
+
+    private void move(float deltaTime) {
+        if (moveDirection.isZero()) return;
+
+        float newX = rect.getX() + moveDirection.x * SPEED * deltaTime;
+        float newY = rect.getY() + moveDirection.y * SPEED * deltaTime;
 
         // Clamp to screen bounds
-        newX = Math.clamp(newX, 0, maxW - rect.getWidth());
-        newY = Math.clamp(newY, 0, maxH - rect.getHeight());
+        newX = Math.clamp(newX, 0, gameViewport.getWorldWidth() - rect.getWidth());
+        newY = Math.clamp(newY, 0, gameViewport.getWorldHeight() - rect.getHeight());
 
         rect.setPosition(newX, newY);
     }
 
-    public Vector2 getMoveDirection() {
-        return moveDirection;
+    public void changeDirection(Vector2 direction) {
+        if (!direction.isZero()) {
+            lastDirection.set(direction);
+        }
+        moveDirection.set(direction);
     }
 
     public float getLife() {
@@ -59,5 +92,9 @@ public class Player extends GameObject {
         }
 
         return false;
+    }
+
+    public Array<AttackHitbox> getAttackHitboxes() {
+        return attackHitboxes;
     }
 }

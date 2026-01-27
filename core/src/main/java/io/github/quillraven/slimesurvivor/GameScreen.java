@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
@@ -30,11 +29,8 @@ public class GameScreen extends ScreenAdapter {
     private final BitmapFont font;
 
     // Player
-    private final Player player = new Player(gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f);
+    private final Player player = new Player(gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f, gameViewport);
     private final Vector2 inputMovement = new Vector2();
-
-    // Combat
-    private final Array<AttackHitbox> attackHitboxes = new Array<>();
 
     // Enemies
     private final Array<Enemy> enemies = new Array<>();
@@ -64,8 +60,6 @@ public class GameScreen extends ScreenAdapter {
     private void resetGame() {
         player.reset(gameViewport.getWorldWidth() / 2, gameViewport.getWorldHeight() / 2);
 
-        attackHitboxes.clear();
-
         enemies.clear();
         enemySpawnTimer = 0f;
 
@@ -73,11 +67,11 @@ public class GameScreen extends ScreenAdapter {
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float deltaTime) {
         if (!player.isDead()) {
-            processInput(delta);
-            updateLogic(delta);
-            checkCollisions(delta);
+            processInput();
+            updateLogic(deltaTime);
+            checkCollisions(deltaTime);
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             resetGame();
         }
@@ -85,7 +79,7 @@ public class GameScreen extends ScreenAdapter {
         draw();
     }
 
-    private void processInput(float delta) {
+    private void processInput() {
         inputMovement.setZero();
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             inputMovement.y += 1;
@@ -100,77 +94,31 @@ public class GameScreen extends ScreenAdapter {
             inputMovement.x += 1;
         }
 
-        if (!inputMovement.isZero()) {
-            inputMovement.nor();
-            player.move(inputMovement, delta, gameViewport.getWorldWidth(), gameViewport.getWorldHeight());
-        }
+        inputMovement.nor();
+        player.changeDirection(inputMovement);
     }
 
-    private void updateLogic(float delta) {
-        // Attack timer
-        if (player.canAttack(delta)) {
-            triggerAttack();
-        }
-
-        // Attack hitbox duration
-        var iterator = attackHitboxes.iterator();
-        while (iterator.hasNext()) {
-            AttackHitbox attackHitbox = iterator.next();
-            if (attackHitbox.updateLifeSpan(delta)) {
-                iterator.remove();
-            }
-        }
+    private void updateLogic(float deltaTime) {
+        // Player (attacks + movement)
+        player.update(deltaTime);
 
         // Enemy spawning
-        enemySpawnTimer += delta;
+        enemySpawnTimer += deltaTime;
         if (enemySpawnTimer >= ENEMY_SPAWN_INTERVAL) {
             enemySpawnTimer = 0f;
-            spawnEnemy();
+            Enemy newEnemy = Enemy.spawn(gameViewport, player);
+            enemies.add(newEnemy);
         }
 
         // Update enemies
-        float playerCenterX = player.getRect().getX() + player.getRect().getWidth() * 0.5f;
-        float playerCenterY = player.getRect().getY() + player.getRect().getHeight() * 0.5f;
         for (Enemy enemy : enemies) {
-            enemy.update(playerCenterX, playerCenterY, delta);
+            enemy.update(deltaTime);
         }
     }
 
-    private void triggerAttack() {
-        float hitboxX = player.getRect().getX() + player.getRect().getWidth() * 0.5f;
-        float hitboxY = player.getRect().getY() + player.getRect().getHeight() * 0.5f;
-        attackHitboxes.add(new AttackHitbox(hitboxX, hitboxY, player.getMoveDirection()));
-    }
-
-    private void spawnEnemy() {
-        int edge = MathUtils.random(3); // 0: top, 1: right, 2: bottom, 3: left
-        float x, y;
-
-        switch (edge) {
-            case 0 -> { // Top
-                x = MathUtils.random(0, 1) * gameViewport.getWorldWidth();
-                y = gameViewport.getWorldHeight();
-            }
-            case 1 -> { // Right
-                x = gameViewport.getWorldWidth();
-                y = MathUtils.random(0, 1) * gameViewport.getWorldHeight();
-            }
-            case 2 -> { // Bottom
-                x = MathUtils.random(0, 1) * gameViewport.getWorldWidth();
-                y = -Enemy.SIZE;
-            }
-            default -> { // Left
-                x = -Enemy.SIZE;
-                y = MathUtils.random(0, 1) * gameViewport.getWorldHeight();
-            }
-        }
-
-        enemies.add(new Enemy(x, y));
-    }
-
-    private void checkCollisions(float delta) {
+    private void checkCollisions(float deltaTime) {
         // Check attack hitbox vs enemies
-        for (AttackHitbox attackHitbox : attackHitboxes) {
+        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
             var iterator = enemies.iterator();
             while (iterator.hasNext()) {
                 Enemy enemy = iterator.next();
@@ -190,7 +138,7 @@ public class GameScreen extends ScreenAdapter {
         }
 
         if (numHits > 0) {
-            player.subLife(DAMAGE_PER_SECOND * numHits * delta);
+            player.subLife(DAMAGE_PER_SECOND * numHits * deltaTime);
         }
     }
 
@@ -211,7 +159,7 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Draw attack hitbox (yellow)
-        for (AttackHitbox attackHitbox : attackHitboxes) {
+        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
             attackHitbox.drawDebug(shapeRenderer, Color.YELLOW);
         }
         shapeRenderer.end();
