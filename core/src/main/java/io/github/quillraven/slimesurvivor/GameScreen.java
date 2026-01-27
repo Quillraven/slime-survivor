@@ -55,7 +55,7 @@ public class GameScreen extends ScreenAdapter {
 
     // Player
     private final Player player = new Player(
-        gameViewport.getWorldWidth() / 2f, gameViewport.getWorldHeight() / 2f, // spawn location
+        WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, // spawn location
         gameViewport, // boundary
         playerTexture, // graphic
         attackAnimation // attack animation
@@ -88,7 +88,7 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void resetGame() {
-        player.reset(gameViewport.getWorldWidth() / 2, gameViewport.getWorldHeight() / 2);
+        player.reset(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f);
 
         enemies.clear();
         enemySpawnTimer = 0f;
