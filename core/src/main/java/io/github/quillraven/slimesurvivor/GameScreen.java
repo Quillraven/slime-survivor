@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
@@ -31,17 +32,13 @@ public class GameScreen extends ScreenAdapter {
     private final Viewport gameViewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT);
     private final Viewport uiViewport = new ScreenViewport();
     private final BitmapFont font;
+    private final GlyphLayout layout = new GlyphLayout();
 
     // Assets
     private final Texture bgdTexture = new Texture(Gdx.files.internal("bgd.png"));
     private final Texture playerTexture = new Texture(Gdx.files.internal("player.png"));
     private final Texture enemyTexture = new Texture(Gdx.files.internal("slime.png"));
-    private final Array<Texture> attackTextures = new Array<>(14);
-    {
-        for (int i = 0; i <= 13; i++) {
-            attackTextures.add(new Texture(Gdx.files.internal(String.format("slash_%02d.png", i))));
-        }
-    }
+    private final Array<Texture> attackTextures = loadAttackTextures();
     private final Animation<Texture> attackAnimation = new Animation<>(1 / 12f, attackTextures);
     private final Music music = Gdx.audio.newMusic(Gdx.files.internal("nightsplitter.mp3"));
     private final Sound slashSfx = Gdx.audio.newSound(Gdx.files.internal("slash.wav"));
@@ -67,6 +64,20 @@ public class GameScreen extends ScreenAdapter {
         this.batch = game.getBatch();
         this.shapeRenderer = game.getShapeRenderer();
         this.font = game.getFont();
+    }
+
+    private Array<Texture> loadAttackTextures() {
+        Array<Texture> textures = new Array<>(14);
+        for (int i = 0; i <= 13; i++) {
+            textures.add(new Texture(Gdx.files.internal(String.format("slash_%02d.png", i))));
+        }
+        return textures;
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        gameViewport.update(width, height, true);
+        uiViewport.update(width, height, true);
     }
 
     @Override
@@ -190,8 +201,10 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, "Score: " + score, 20, uiViewport.getWorldHeight() - 20);
         font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 20, uiViewport.getWorldHeight() - 60);
         if (player.isDead()) {
-            font.draw(batch, "GAME OVER", uiViewport.getWorldWidth() / 2 - 100, uiViewport.getWorldHeight() / 2 + 40);
-            font.draw(batch, "Press R to Restart", uiViewport.getWorldWidth() / 2 - 135, uiViewport.getWorldHeight() / 2 - 30);
+            layout.setText(font, "GAME OVER");
+            font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 + 40);
+            layout.setText(font, "Press R to Restart");
+            font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 - 30);
         }
         batch.end();
     }
@@ -217,12 +230,6 @@ public class GameScreen extends ScreenAdapter {
             attack.drawDebug(shapeRenderer, Color.YELLOW);
         }
         shapeRenderer.end();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        gameViewport.update(width, height, true);
-        uiViewport.update(width, height, true);
     }
 
     @Override

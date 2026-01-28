@@ -6,6 +6,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -15,11 +16,17 @@ public class ControlsScreen extends ScreenAdapter {
     private final Batch batch;
     private final BitmapFont font;
     private final Viewport viewport = new ScreenViewport();
+    private final GlyphLayout layout = new GlyphLayout();
 
     public ControlsScreen(GdxGame game) {
         this.game = game;
         this.batch = game.getBatch();
         this.font = game.getFont();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
     }
 
     @Override
@@ -39,19 +46,21 @@ public class ControlsScreen extends ScreenAdapter {
         float centerX = viewport.getWorldWidth() / 2;
         float y = viewport.getWorldHeight() / 2 + 100;
 
-        font.draw(batch, "CONTROLS", centerX - 80, y);
+        layout.setText(font, "CONTROLS");
+        font.draw(batch, layout, centerX - layout.width / 2, y);
         y -= 50;
-        font.draw(batch, "W / A / S / D - Move", centerX - 140, y);
+
+        layout.setText(font, "W / A / S / D - Move");
+        font.draw(batch, layout, centerX - layout.width / 2, y);
         y -= 40;
-        font.draw(batch, "R - Restart (when dead)", centerX - 155, y);
+
+        layout.setText(font, "R - Restart (when dead)");
+        font.draw(batch, layout, centerX - layout.width / 2, y);
         y -= 70;
-        font.draw(batch, "Press SPACE to start", centerX - 145, y);
+
+        layout.setText(font, "Press SPACE to start");
+        font.draw(batch, layout, centerX - layout.width / 2, y);
 
         batch.end();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        viewport.update(width, height, true);
     }
 }
