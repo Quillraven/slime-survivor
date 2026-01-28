@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 public class Enemy extends GameObject {
-    private static final float SCALE = 1 / 64f;
+    private static final float SCALE = 1 / 32f;
     private static final float SPEED = 1.5f;
 
     private final Player player;

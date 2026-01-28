@@ -3,6 +3,8 @@ package io.github.quillraven.slimesurvivor;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
@@ -41,13 +43,16 @@ public class GameScreen extends ScreenAdapter {
         }
     }
     private final Animation<Texture> attackAnimation = new Animation<>(1 / 12f, attackTextures);
+    private final Music music = Gdx.audio.newMusic(Gdx.files.internal("nightsplitter.mp3"));
+    private final Sound slashSfx = Gdx.audio.newSound(Gdx.files.internal("slash.wav"));
 
     // Player
     private final Player player = new Player(
         WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, // spawn location
         gameViewport, // boundary
         playerTexture, // graphic
-        attackAnimation // attack animation
+        attackAnimation, // attack animation
+        slashSfx // attack sound effect
     );
     private final Vector2 inputMovement = new Vector2();
 
@@ -76,6 +81,10 @@ public class GameScreen extends ScreenAdapter {
         enemySpawnTimer = 0f;
 
         score = 0;
+
+        music.stop();
+        music.setLooping(true);
+        music.play();
     }
 
     @Override
@@ -181,8 +190,8 @@ public class GameScreen extends ScreenAdapter {
         font.draw(batch, "Score: " + score, 20, uiViewport.getWorldHeight() - 20);
         font.draw(batch, "Life: " + String.format("%.1f", player.getLife()), 20, uiViewport.getWorldHeight() - 60);
         if (player.isDead()) {
-            font.draw(batch, "GAME OVER", uiViewport.getWorldWidth() / 2 - 200, uiViewport.getWorldHeight() / 2 + 50);
-            font.draw(batch, "Press R to Restart", uiViewport.getWorldWidth() / 2 - 250, uiViewport.getWorldHeight() / 2 - 50);
+            font.draw(batch, "GAME OVER", uiViewport.getWorldWidth() / 2 - 100, uiViewport.getWorldHeight() / 2 + 40);
+            font.draw(batch, "Press R to Restart", uiViewport.getWorldWidth() / 2 - 135, uiViewport.getWorldHeight() / 2 - 30);
         }
         batch.end();
     }
@@ -222,5 +231,7 @@ public class GameScreen extends ScreenAdapter {
         playerTexture.dispose();
         enemyTexture.dispose();
         attackTextures.forEach(Texture::dispose);
+        music.dispose();
+        slashSfx.dispose();
     }
 }

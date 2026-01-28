@@ -1,5 +1,6 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Vector2;
@@ -19,12 +20,18 @@ public class Player extends GameObject {
     private final Array<AttackHitbox> attackHitboxes = new Array<>();
     private final Animation<Texture> attackAnimation;
     private final Viewport gameViewport;
+    private final Sound attackSfx;
 
-    public Player(float x, float y, Viewport gameViewport, Texture texture, Animation<Texture> attackAnimation) {
+    public Player(float x, float y,
+                  Viewport gameViewport,
+                  Texture texture,
+                  Animation<Texture> attackAnimation,
+                  Sound attackSfx) {
         super(x, y, texture.getWidth() * SCALE, texture.getHeight() * SCALE, texture);
         reset(x, y);
         this.gameViewport = gameViewport;
         this.attackAnimation = attackAnimation;
+        this.attackSfx = attackSfx;
     }
 
     public void reset(float x, float y) {
@@ -39,6 +46,7 @@ public class Player extends GameObject {
         // Spawn new attack hitbox?
         if (canAttack(deltaTime)) {
             Vector2 playerCenter = getCenter(TMP_VEC2);
+            attackSfx.play();
             attackHitboxes.add(new AttackHitbox(playerCenter, lastDirection, attackAnimation));
         }
 

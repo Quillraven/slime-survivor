@@ -2,7 +2,8 @@
 
 ### Description
 
-A LibGDX tutorial project that provides an alternative version of the "A simple game" tutorial. This is a Vampire Survivors clone where you play as a swordsman killing waves of slimes.
+A very basic "Vampire Survivors" clone for a [LibGDX](https://libgdx.com/) tutorial on my [Youtube](https://www.youtube.com/@Quillraven) channel.
+It is meant to be like the "A simple game" tutorial of the official LibGDX wiki but more exciting.
 
 The project demonstrates core LibGDX concepts including:
 - **ShapeRenderer** for debug rendering
@@ -10,6 +11,7 @@ The project demonstrates core LibGDX concepts including:
 - **Animations** for attack effects
 - **Font rendering** with TrueType fonts
 - **Input handling** for player movement
+- **Audio** playback
 - **Basic math** including rectangle overlapping and vector-based movement
 
 ### Controls
@@ -20,6 +22,6 @@ The project demonstrates core LibGDX concepts including:
 
 ### Assets
 
-- [Free Slime Sprite Sheets](https://craftpix.net/freebies/free-slime-sprite-sheets-pixel-art/?hl=de-AT)
-- [Free Swordsman Pixel Top-Down Sprite Character Pack](https://craftpix.net/freebies/free-swordsman-1-3-level-pixel-top-down-sprite-character-pack/?hl=de-AT)
-- [Free Top-Down Roguelike Game Kit](https://craftpix.net/freebies/free-top-down-roguelike-game-kit-pixel-art/?num=1&count=149&sq=dungeon%20tilset&pos=9)
+- [Slime Sprite](https://stealthix.itch.io/animated-slimes)
+- [Swordman Sprite](https://craftpix.net/freebies/free-swordsman-1-3-level-pixel-top-down-sprite-character-pack/?hl=de-AT)
+- [Background Tileset](https://craftpix.net/freebies/free-top-down-roguelike-game-kit-pixel-art/?num=1&count=149&sq=dungeon%20tilset&pos=9)

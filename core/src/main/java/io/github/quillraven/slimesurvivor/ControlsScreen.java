@@ -27,6 +27,7 @@ public class ControlsScreen extends ScreenAdapter {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             game.setScreen(new GameScreen(game));
             dispose();
+            return;
         }
 
         ScreenUtils.clear(Color.BLACK);
@@ -40,11 +41,11 @@ public class ControlsScreen extends ScreenAdapter {
 
         font.draw(batch, "CONTROLS", centerX - 80, y);
         y -= 50;
-        font.draw(batch, "W / A / S / D - Move", centerX - 150, y);
+        font.draw(batch, "W / A / S / D - Move", centerX - 140, y);
         y -= 40;
-        font.draw(batch, "R - Restart (when dead)", centerX - 180, y);
-        y -= 80;
-        font.draw(batch, "Press SPACE to start", centerX - 180, y);
+        font.draw(batch, "R - Restart (when dead)", centerX - 155, y);
+        y -= 70;
+        font.draw(batch, "Press SPACE to start", centerX - 145, y);
 
         batch.end();
     }
