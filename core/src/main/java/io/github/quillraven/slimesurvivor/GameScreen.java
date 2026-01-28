@@ -139,11 +139,11 @@ public class GameScreen extends ScreenAdapter {
 
     private void checkCollisions(float deltaTime) {
         // Check attack hitbox vs enemies
-        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
+        for (Attack attack : player.getAttacks()) {
             var iterator = enemies.iterator();
             while (iterator.hasNext()) {
                 Enemy enemy = iterator.next();
-                if (attackHitbox.overlaps(enemy)) {
+                if (attack.overlaps(enemy)) {
                     iterator.remove();
                     score++;
                 }
@@ -175,8 +175,8 @@ public class GameScreen extends ScreenAdapter {
         for (Enemy enemy : enemies) {
             enemy.draw(batch);
         }
-        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
-            attackHitbox.draw(batch);
+        for (Attack attack : player.getAttacks()) {
+            attack.draw(batch);
         }
         player.draw(batch);
         batch.end();
@@ -213,8 +213,8 @@ public class GameScreen extends ScreenAdapter {
         }
 
         // Draw attack hitbox (yellow)
-        for (AttackHitbox attackHitbox : player.getAttackHitboxes()) {
-            attackHitbox.drawDebug(shapeRenderer, Color.YELLOW);
+        for (Attack attack : player.getAttacks()) {
+            attack.drawDebug(shapeRenderer, Color.YELLOW);
         }
         shapeRenderer.end();
     }

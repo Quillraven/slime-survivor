@@ -17,7 +17,7 @@ public class Player extends GameObject {
     private final Vector2 lastDirection = new Vector2(1, 0); // used for attacks; default is right
     private float life = LIFE;
     private float attackTimer;
-    private final Array<AttackHitbox> attackHitboxes = new Array<>();
+    private final Array<Attack> attacks = new Array<>();
     private final Animation<Texture> attackAnimation;
     private final Viewport gameViewport;
     private final Sound attackSfx;
@@ -38,7 +38,7 @@ public class Player extends GameObject {
         rect.setPosition(x, y);
         life = LIFE;
         attackTimer = ATTACK_COOLDOWN;
-        attackHitboxes.clear();
+        attacks.clear();
     }
 
     @Override
@@ -47,15 +47,15 @@ public class Player extends GameObject {
         if (canAttack(deltaTime)) {
             Vector2 playerCenter = getCenter(TMP_VEC2);
             attackSfx.play();
-            attackHitboxes.add(new AttackHitbox(playerCenter, lastDirection, attackAnimation));
+            attacks.add(new Attack(playerCenter, lastDirection, attackAnimation));
         }
 
         // Update attack hitbox life spans
-        var iterator = attackHitboxes.iterator();
+        var iterator = attacks.iterator();
         while (iterator.hasNext()) {
-            AttackHitbox attackHitbox = iterator.next();
-            attackHitbox.update(deltaTime);
-            if (attackHitbox.isDone()) {
+            Attack attack = iterator.next();
+            attack.update(deltaTime);
+            if (attack.isDone()) {
                 iterator.remove();
             }
         }
@@ -106,7 +106,7 @@ public class Player extends GameObject {
         return false;
     }
 
-    public Array<AttackHitbox> getAttackHitboxes() {
-        return attackHitboxes;
+    public Array<Attack> getAttacks() {
+        return attacks;
     }
 }
