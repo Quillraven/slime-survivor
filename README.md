@@ -1,5 +1,7 @@
 # Slime Survivor
 
+![Game Screenshot](https://github.com/user-attachments/assets/8a6a8611-c473-40a4-b5ef-605cad5e2369)
+
 ### Description
 
 A very basic "Vampire Survivors" clone for a [LibGDX](https://libgdx.com/) tutorial on my [Youtube](https://www.youtube.com/@Quillraven) channel.
