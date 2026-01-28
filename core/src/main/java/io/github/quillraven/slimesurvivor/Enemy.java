@@ -19,7 +19,7 @@ public class Enemy extends GameObject {
     @Override
     void update(float deltaTime) {
         Vector2 direction = player.getCenter(TMP_VEC2)
-            .sub(rect.getX(), rect.getY()) // direction to player
+            .sub(rect.x + rect.width * 0.5f, rect.y + rect.height * 0.5f) // direction to player
             .nor() // normalize to avoid faster diagonal movement
             .scl(SPEED * deltaTime); // multiply by enemy speed
 
