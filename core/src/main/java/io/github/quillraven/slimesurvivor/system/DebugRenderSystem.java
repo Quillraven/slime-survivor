@@ -14,7 +14,7 @@ import io.github.quillraven.slimesurvivor.component.Transform;
 import java.util.Comparator;
 
 public class DebugRenderSystem extends SortedIteratingSystem {
-    private static final boolean DRAW_DEBUG = true;
+    private static final boolean DRAW_DEBUG = false;
 
     private final ShapeRenderer shapeRenderer;
     private final Viewport gameViewport;

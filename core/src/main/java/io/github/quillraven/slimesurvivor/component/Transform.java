@@ -22,7 +22,7 @@ public class Transform implements Component, Comparable<Transform> {
 
     @Override
     public int compareTo(Transform other) {
-        int yDiff = Float.compare(rect.y, other.rect.y);
+        int yDiff = Float.compare(other.rect.y, rect.y);
         if (yDiff == 0) {
             return Float.compare(rect.x, other.rect.x);
         }
