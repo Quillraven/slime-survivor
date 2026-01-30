@@ -1,30 +1,42 @@
 package io.github.quillraven.slimesurvivor;
 
+import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.Family;
+import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import io.github.quillraven.slimesurvivor.component.Controls;
+import io.github.quillraven.slimesurvivor.component.Graphic;
+import io.github.quillraven.slimesurvivor.component.Move;
+import io.github.quillraven.slimesurvivor.component.Player;
+import io.github.quillraven.slimesurvivor.component.Transform;
+import io.github.quillraven.slimesurvivor.system.AnimationSystem;
+import io.github.quillraven.slimesurvivor.system.AttackSystem;
+import io.github.quillraven.slimesurvivor.system.AudioSystem;
+import io.github.quillraven.slimesurvivor.system.CollisionSystem;
+import io.github.quillraven.slimesurvivor.system.ControlsSystem;
+import io.github.quillraven.slimesurvivor.system.DebugRenderSystem;
+import io.github.quillraven.slimesurvivor.system.EnemyAISystem;
+import io.github.quillraven.slimesurvivor.system.LifeSpanSystem;
+import io.github.quillraven.slimesurvivor.system.MoveSystem;
+import io.github.quillraven.slimesurvivor.system.RenderSystem;
+import io.github.quillraven.slimesurvivor.system.SpawnSystem;
 
 public class GameScreen extends ScreenAdapter {
-    private static final float WORLD_WIDTH = 16f;
-    private static final float WORLD_HEIGHT = 9f;
-    private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
-    private static final float DAMAGE_PER_SECOND = 1.0f;
-    private static final boolean DRAW_DEBUG = false;
+    public static final float WORLD_WIDTH = 16f;
+    public static final float WORLD_HEIGHT = 9f;
 
     // General
     private final Batch batch;
@@ -32,48 +44,34 @@ public class GameScreen extends ScreenAdapter {
     private final Viewport gameViewport = new ExtendViewport(WORLD_WIDTH, WORLD_HEIGHT);
     private final Viewport uiViewport = new ScreenViewport();
     private final BitmapFont font;
-    private final GlyphLayout layout = new GlyphLayout();
+    private final Engine engine;
 
     // Assets
-    private final Texture bgdTexture = new Texture(Gdx.files.internal("bgd.png"));
     private final Texture playerTexture = new Texture(Gdx.files.internal("player.png"));
-    private final Texture enemyTexture = new Texture(Gdx.files.internal("slime.png"));
-    private final Array<Texture> attackTextures = loadAttackTextures();
-    private final Animation<Texture> attackAnimation = new Animation<>(1 / 12f, attackTextures);
-    private final Music music = Gdx.audio.newMusic(Gdx.files.internal("nightsplitter.mp3"));
-    private final Sound slashSfx = Gdx.audio.newSound(Gdx.files.internal("slash.wav"));
-
-    // Player
-    private final Player player = new Player(
-        WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, // spawn location
-        gameViewport, // boundary
-        playerTexture, // graphic
-        attackAnimation, // attack animation
-        slashSfx // attack sound effect
-    );
-    private final Vector2 inputMovement = new Vector2();
-
-    // Enemies
-    private final Array<Enemy> enemies = new Array<>();
-    private float enemySpawnTimer;
-
-    // Game State
-    private int score;
 
     public GameScreen(GdxGame game) {
         this.batch = game.getBatch();
         this.shapeRenderer = game.getShapeRenderer();
         this.font = game.getFont();
-
-        bgdTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        this.engine = createEngine();
     }
 
-    private Array<Texture> loadAttackTextures() {
-        Array<Texture> textures = new Array<>(14);
-        for (int i = 0; i <= 13; i++) {
-            textures.add(new Texture(Gdx.files.internal(String.format("slash_%02d.png", i))));
-        }
-        return textures;
+    private Engine createEngine() {
+        Engine engine = new Engine();
+
+        engine.addSystem(new ControlsSystem());
+        engine.addSystem(new SpawnSystem(gameViewport));
+        engine.addSystem(new AttackSystem());
+        engine.addSystem(new EnemyAISystem());
+        engine.addSystem(new MoveSystem(gameViewport));
+        engine.addSystem(new CollisionSystem());
+        engine.addSystem(new AnimationSystem());
+        engine.addSystem(new RenderSystem(batch, gameViewport, uiViewport, font));
+        engine.addSystem(new DebugRenderSystem(shapeRenderer, gameViewport));
+        engine.addSystem(new LifeSpanSystem());
+        engine.addSystem(new AudioSystem());
+
+        return engine;
     }
 
     @Override
@@ -84,178 +82,52 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void show() {
+        Entity player = engine.createEntity();
+        Transform transform = new Transform();
+        transform.rect.setSize(playerTexture.getWidth() / 32f, playerTexture.getHeight() / 32f);
+        player.add(transform);
+        Graphic graphic = new Graphic();
+        graphic.texture = playerTexture;
+        player.add(graphic);
+        player.add(new Controls());
+        player.add(new Player());
+        Move move = new Move();
+        move.speed = 2f;
+        player.add(move);
+        engine.addEntity(player);
+
         resetGame();
     }
 
     private void resetGame() {
-        player.reset(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f);
+        // reset player
+        ImmutableArray<Entity> playerEntities = engine.getEntitiesFor(Family.all(Player.class).get());
+        Entity player = playerEntities.first();
+        player.getComponent(Transform.class).rect.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f);
+        player.getComponent(Player.class).reset();
 
-        enemies.clear();
-        enemySpawnTimer = 0f;
+        // remove any non-player entities
+        engine.getEntitiesFor(Family.exclude(Player.class).get()).forEach(engine::removeEntity);
 
-        score = 0;
-
-        music.stop();
-        music.setLooping(true);
-        music.play();
+        // reset enemy spawn and enable relevant systems again
+        engine.getSystem(SpawnSystem.class).setProcessing(true);
+        engine.getSystem(MoveSystem.class).setProcessing(true);
+        engine.getSystem(SpawnSystem.class).resetTimer();
     }
 
     @Override
     public void render(float deltaTime) {
-        if (!player.isDead()) {
-            processInput();
-            updateLogic(deltaTime);
-            checkCollisions(deltaTime);
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            resetGame();
-        }
-
-        draw();
-    }
-
-    private void processInput() {
-        inputMovement.setZero();
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            inputMovement.y += 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-            inputMovement.y -= 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            inputMovement.x -= 1;
-        }
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
-            inputMovement.x += 1;
-        }
-
-        inputMovement.nor();
-        player.changeDirection(inputMovement);
-    }
-
-    private void updateLogic(float deltaTime) {
-        // Player (attacks + movement)
-        player.update(deltaTime);
-
-        // Enemy spawning
-        enemySpawnTimer += deltaTime;
-        if (enemySpawnTimer >= ENEMY_SPAWN_INTERVAL) {
-            enemySpawnTimer = 0f;
-            Enemy newEnemy = Enemy.spawn(gameViewport, enemyTexture, player);
-            enemies.add(newEnemy);
-        }
-
-        // Update enemies
-        for (Enemy enemy : enemies) {
-            enemy.update(deltaTime);
-        }
-    }
-
-    private void checkCollisions(float deltaTime) {
-        // Check attack hitbox vs enemies
-        for (Attack attack : player.getAttacks()) {
-            var iterator = enemies.iterator();
-            while (iterator.hasNext()) {
-                Enemy enemy = iterator.next();
-                if (attack.overlaps(enemy)) {
-                    iterator.remove();
-                    score++;
-                }
-            }
-        }
-
-        // Check enemies vs player
-        int numHits = 0;
-        for (Enemy enemy : enemies) {
-            if (player.overlaps(enemy)) {
-                ++numHits;
-            }
-        }
-
-        if (numHits > 0) {
-            player.subLife(DAMAGE_PER_SECOND * numHits * deltaTime);
-        }
-    }
-
-    private void draw() {
         ScreenUtils.clear(Color.BLACK);
-
-        gameViewport.apply();
-
-        // Draw textures
-        batch.setProjectionMatrix(gameViewport.getCamera().combined);
-        batch.begin();
-        drawBackground();
-        for (Enemy enemy : enemies) {
-            enemy.draw(batch);
-        }
-        for (Attack attack : player.getAttacks()) {
-            attack.draw(batch);
-        }
-        player.draw(batch);
-        batch.end();
-
-        drawDebug();
-
-        // Draw UI
-        uiViewport.apply();
-        batch.setProjectionMatrix(uiViewport.getCamera().combined);
-        batch.begin();
-        font.draw(batch, "Score: " + score, 20, uiViewport.getWorldHeight() - 20);
-        font.draw(batch, "Life: " + String.format("%.1f", Math.max(0f, player.getLife())), 20, uiViewport.getWorldHeight() - 60);
-        if (player.isDead()) {
-            layout.setText(font, "GAME OVER");
-            font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 + 40);
-            layout.setText(font, "Press R to Restart");
-            font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 - 30);
-        }
-        batch.end();
-    }
-
-    private void drawBackground() {
-        // Calculate how many times the texture fits into the world dimensions
-        float u2 = gameViewport.getWorldWidth() / WORLD_WIDTH;
-        float v2 = gameViewport.getWorldHeight() / WORLD_HEIGHT;
-
-        // Draw with custom UV coordinates to correctly repeat the texture
-        batch.draw(bgdTexture,
-            0, 0,
-            gameViewport.getWorldWidth(),
-            gameViewport.getWorldHeight(),
-            0, 0,
-            u2, v2
-        );
-    }
-
-    private void drawDebug() {
-        if (!DRAW_DEBUG) {
-            return;
-        }
-
-        shapeRenderer.setProjectionMatrix(gameViewport.getCamera().combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-
-        // Draw player (green)
-        player.drawDebug(shapeRenderer, Color.GREEN);
-
-        // Draw enemies (red)
-        for (Enemy enemy : enemies) {
-            enemy.drawDebug(shapeRenderer, Color.RED);
-        }
-
-        // Draw attack hitbox (yellow)
-        for (Attack attack : player.getAttacks()) {
-            attack.drawDebug(shapeRenderer, Color.YELLOW);
-        }
-        shapeRenderer.end();
+        engine.update(deltaTime);
     }
 
     @Override
     public void dispose() {
-        bgdTexture.dispose();
+        for (EntitySystem system : engine.getSystems()) {
+            if (system instanceof Disposable disposableSystem) {
+                disposableSystem.dispose();
+            }
+        }
         playerTexture.dispose();
-        enemyTexture.dispose();
-        attackTextures.forEach(Texture::dispose);
-        music.dispose();
-        slashSfx.dispose();
     }
 }
