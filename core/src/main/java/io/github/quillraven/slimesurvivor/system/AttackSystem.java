@@ -10,7 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import io.github.quillraven.slimesurvivor.component.Animation;
-import io.github.quillraven.slimesurvivor.component.Attack;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Graphic;
 import io.github.quillraven.slimesurvivor.component.Player;
 import io.github.quillraven.slimesurvivor.component.Transform;
@@ -59,14 +59,14 @@ public class AttackSystem extends IteratingSystem implements Disposable {
         attackTransform.rect.setSize(SIZE, SIZE);
         attackEntity.add(attackTransform);
 
-        // graphic + attack
+        // graphic + lifespan
         attackEntity.add(new Graphic());
-        attackEntity.add(new Attack());
+        attackEntity.add(new LifeSpan());
 
         // animation
         Animation animation = new Animation();
         animation.gdxAnimation = attackAnimation;
-        animation.speed = attackAnimation.getAnimationDuration() / Attack.DURATION;
+        animation.speed = attackAnimation.getAnimationDuration() / LifeSpan.DURATION;
         attackEntity.add(animation);
         getEngine().addEntity(attackEntity);
     }

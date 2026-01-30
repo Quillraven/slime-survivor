@@ -7,7 +7,7 @@ import com.badlogic.ashley.systems.IteratingSystem;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import io.github.quillraven.slimesurvivor.component.Attack;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Move;
 import io.github.quillraven.slimesurvivor.component.Player;
 import io.github.quillraven.slimesurvivor.component.Transform;
@@ -18,7 +18,7 @@ public class EnemyAISystem extends IteratingSystem {
     private ImmutableArray<Entity> playerEntities = null;
 
     public EnemyAISystem() {
-        super(Family.all(Transform.class, Move.class).exclude(Player.class, Attack.class).get());
+        super(Family.all(Transform.class, Move.class).exclude(Player.class, LifeSpan.class).get());
     }
 
     @Override

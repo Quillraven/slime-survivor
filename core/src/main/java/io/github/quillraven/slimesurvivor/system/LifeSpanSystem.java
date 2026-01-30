@@ -3,18 +3,18 @@ package io.github.quillraven.slimesurvivor.system;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.systems.IteratingSystem;
-import io.github.quillraven.slimesurvivor.component.Attack;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 
 public class LifeSpanSystem extends IteratingSystem {
     public LifeSpanSystem() {
-        super(Family.all(Attack.class).get());
+        super(Family.all(LifeSpan.class).get());
     }
 
     @Override
     protected void processEntity(Entity entity, float deltaTime) {
-        Attack attack = entity.getComponent(Attack.class);
-        attack.lifeSpan -= deltaTime;
-        if (attack.lifeSpan <= 0f) {
+        LifeSpan lifeSpan = entity.getComponent(LifeSpan.class);
+        lifeSpan.duration -= deltaTime;
+        if (lifeSpan.duration <= 0f) {
             getEngine().removeEntity(entity);
         }
     }

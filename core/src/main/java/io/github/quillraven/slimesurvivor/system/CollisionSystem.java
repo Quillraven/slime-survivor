@@ -6,7 +6,7 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.math.Rectangle;
-import io.github.quillraven.slimesurvivor.component.Attack;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Player;
 import io.github.quillraven.slimesurvivor.component.Transform;
 
@@ -20,9 +20,9 @@ public class CollisionSystem extends EntitySystem {
     @Override
     public void addedToEngine(Engine engine) {
         super.addedToEngine(engine);
-        attackEntities = engine.getEntitiesFor(Family.all(Transform.class, Attack.class).get());
+        attackEntities = engine.getEntitiesFor(Family.all(Transform.class, LifeSpan.class).get());
         playerEntities = engine.getEntitiesFor(Family.all(Transform.class, Player.class).get());
-        enemyEntities = engine.getEntitiesFor(Family.all(Transform.class).exclude(Player.class, Attack.class).get());
+        enemyEntities = engine.getEntitiesFor(Family.all(Transform.class).exclude(Player.class, LifeSpan.class).get());
     }
 
     @Override

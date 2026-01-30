@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import io.github.quillraven.slimesurvivor.component.Attack;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Player;
 import io.github.quillraven.slimesurvivor.component.Transform;
 
@@ -46,7 +46,7 @@ public class DebugRenderSystem extends SortedIteratingSystem {
         final Color color;
         if (entity.getComponent(Player.class) != null) {
             color = Color.GREEN;
-        } else if (entity.getComponent(Attack.class) != null) {
+        } else if (entity.getComponent(LifeSpan.class) != null) {
             color = Color.YELLOW;
         } else {
             color = Color.RED;
