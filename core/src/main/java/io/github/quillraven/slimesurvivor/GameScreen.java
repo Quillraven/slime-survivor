@@ -182,7 +182,7 @@ public class GameScreen extends ScreenAdapter {
         // Draw textures
         batch.setProjectionMatrix(gameViewport.getCamera().combined);
         batch.begin();
-        batch.draw(bgdTexture, 0, 0, gameViewport.getWorldWidth(), gameViewport.getWorldHeight());
+        batch.draw(bgdTexture, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
         for (Enemy enemy : enemies) {
             enemy.draw(batch);
         }
