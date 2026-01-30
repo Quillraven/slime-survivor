@@ -11,7 +11,7 @@ public abstract class GameObject {
     protected static final Vector2 TMP_VEC2 = new Vector2();
 
     protected final Rectangle rect;
-    protected final Texture texture;
+    protected Texture texture;
 
     public GameObject(float x, float y, float w, float h, Texture texture) {
         this.rect = new Rectangle(x, y, w, h);

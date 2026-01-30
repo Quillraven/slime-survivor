@@ -30,8 +30,8 @@ public class Attack extends GameObject {
         float animationDuration = animation.getAnimationDuration();
         float animationPerc = 1f - (Math.max(0f, lifeSpan) / DURATION);
         float stateTime = animationDuration * animationPerc;
-        Texture keyFrame = animation.getKeyFrame(stateTime, true);
-        batch.draw(keyFrame, rect.x, rect.y, rect.width, rect.height);
+        texture = animation.getKeyFrame(stateTime, true);
+        super.draw(batch);
     }
 
     public boolean isDone() {
