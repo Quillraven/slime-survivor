@@ -64,6 +64,8 @@ public class GameScreen extends ScreenAdapter {
         this.batch = game.getBatch();
         this.shapeRenderer = game.getShapeRenderer();
         this.font = game.getFont();
+
+        bgdTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
     }
 
     private Array<Texture> loadAttackTextures() {
@@ -182,7 +184,7 @@ public class GameScreen extends ScreenAdapter {
         // Draw textures
         batch.setProjectionMatrix(gameViewport.getCamera().combined);
         batch.begin();
-        batch.draw(bgdTexture, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+        drawBackground();
         for (Enemy enemy : enemies) {
             enemy.draw(batch);
         }
@@ -207,6 +209,21 @@ public class GameScreen extends ScreenAdapter {
             font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 - 30);
         }
         batch.end();
+    }
+
+    private void drawBackground() {
+        // Calculate how many times the texture fits into the world dimensions
+        float u2 = gameViewport.getWorldWidth() / WORLD_WIDTH;
+        float v2 = gameViewport.getWorldHeight() / WORLD_HEIGHT;
+
+        // Draw with custom UV coordinates to correctly repeat the texture
+        batch.draw(bgdTexture,
+            0, 0,
+            gameViewport.getWorldWidth(),
+            gameViewport.getWorldHeight(),
+            0, 0,
+            u2, v2
+        );
     }
 
     private void drawDebug() {
