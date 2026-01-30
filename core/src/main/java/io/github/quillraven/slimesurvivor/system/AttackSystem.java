@@ -52,14 +52,21 @@ public class AttackSystem extends IteratingSystem implements Disposable {
         float hitboxY = playerCenter.y - SIZE / 2 + player.lastDirection.y * SIZE * 0.75f;
 
         Entity attackEntity = getEngine().createEntity();
+
+        // transform
         Transform attackTransform = new Transform();
         attackTransform.rect.setPosition(hitboxX, hitboxY);
         attackTransform.rect.setSize(SIZE, SIZE);
         attackEntity.add(attackTransform);
+
+        // graphic + attack
         attackEntity.add(new Graphic());
         attackEntity.add(new Attack());
+
+        // animation
         Animation animation = new Animation();
         animation.gdxAnimation = attackAnimation;
+        animation.speed = attackAnimation.getAnimationDuration() / Attack.DURATION;
         attackEntity.add(animation);
         getEngine().addEntity(attackEntity);
     }

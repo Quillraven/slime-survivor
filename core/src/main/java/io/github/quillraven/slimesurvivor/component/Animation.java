@@ -5,4 +5,6 @@ import com.badlogic.gdx.graphics.Texture;
 
 public class Animation implements Component {
     public com.badlogic.gdx.graphics.g2d.Animation<Texture> gdxAnimation = null;
+    public float stateTime = 0f;
+    public float speed = 1f;
 }
