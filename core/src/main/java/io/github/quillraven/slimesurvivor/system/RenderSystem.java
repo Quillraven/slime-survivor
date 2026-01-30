@@ -109,7 +109,7 @@ public class RenderSystem extends SortedIteratingSystem implements Disposable {
         batch.setProjectionMatrix(uiViewport.getCamera().combined);
         batch.begin();
         font.draw(batch, "Score: " + player.score, 20, uiViewport.getWorldHeight() - 20);
-        font.draw(batch, "Life: " + String.format("%.1f", Math.max(0f, player.lifes)), 20, uiViewport.getWorldHeight() - 60);
+        font.draw(batch, "Life: " + String.format("%.1f", Math.max(0f, player.lives)), 20, uiViewport.getWorldHeight() - 60);
         if (player.isDead()) {
             layout.setText(font, "GAME OVER");
             font.draw(batch, layout, uiViewport.getWorldWidth() / 2 - layout.width / 2, uiViewport.getWorldHeight() / 2 + 40);

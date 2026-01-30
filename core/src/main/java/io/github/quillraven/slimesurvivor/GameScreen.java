@@ -83,17 +83,11 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void show() {
         Entity player = engine.createEntity();
-        Transform transform = new Transform();
-        transform.rect.setSize(playerTexture.getWidth() / 32f, playerTexture.getHeight() / 32f);
-        player.add(transform);
-        Graphic graphic = new Graphic();
-        graphic.texture = playerTexture;
-        player.add(graphic);
+        player.add(new Transform(playerTexture.getWidth() / 32f, playerTexture.getHeight() / 32f));
+        player.add(new Graphic(playerTexture));
         player.add(new Controls());
-        player.add(new Player());
-        Move move = new Move();
-        move.speed = 2f;
-        player.add(move);
+        player.add(new Player(5f));
+        player.add(new Move(2f));
         engine.addEntity(player);
 
         resetGame();

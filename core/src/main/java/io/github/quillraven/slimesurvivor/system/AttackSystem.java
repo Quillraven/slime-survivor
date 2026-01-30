@@ -10,8 +10,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import io.github.quillraven.slimesurvivor.component.Animation;
-import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Graphic;
+import io.github.quillraven.slimesurvivor.component.LifeSpan;
 import io.github.quillraven.slimesurvivor.component.Player;
 import io.github.quillraven.slimesurvivor.component.Transform;
 
@@ -54,20 +54,18 @@ public class AttackSystem extends IteratingSystem implements Disposable {
         Entity attackEntity = getEngine().createEntity();
 
         // transform
-        Transform attackTransform = new Transform();
-        attackTransform.rect.setPosition(hitboxX, hitboxY);
-        attackTransform.rect.setSize(SIZE, SIZE);
-        attackEntity.add(attackTransform);
+        attackEntity.add(new Transform(hitboxX, hitboxY, SIZE, SIZE));
 
         // graphic + lifespan
+        float lifeSpan = 0.4f;
         attackEntity.add(new Graphic());
-        attackEntity.add(new LifeSpan());
+        attackEntity.add(new LifeSpan(lifeSpan));
 
         // animation
-        Animation animation = new Animation();
-        animation.gdxAnimation = attackAnimation;
-        animation.speed = attackAnimation.getAnimationDuration() / LifeSpan.DURATION;
-        attackEntity.add(animation);
+        // duration of animation is equal to the lifespan duration -> adjust animation speed
+        float animationSpeed = attackAnimation.getAnimationDuration() / lifeSpan;
+        attackEntity.add(new Animation(attackAnimation, animationSpeed));
+
         getEngine().addEntity(attackEntity);
     }
 

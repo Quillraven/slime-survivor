@@ -14,7 +14,6 @@ import io.github.quillraven.slimesurvivor.component.Transform;
 public class SpawnSystem extends EntitySystem implements Disposable {
     private static final float ENEMY_SPAWN_INTERVAL = 1.5f;
     private static final float ENEMY_SCALE = 1 / 32f;
-    private static final float ENEMY_SPEED = 1.5f;
 
     private final Texture enemyTexture = new Texture(Gdx.files.internal("slime.png"));
     private final Viewport gameViewport;
@@ -34,15 +33,10 @@ public class SpawnSystem extends EntitySystem implements Disposable {
         enemySpawnTimer = 0f;
 
         Entity enemy = getEngine().createEntity();
-        Transform transform = new Transform();
-        transform.rect.setSize(enemyTexture.getWidth() / 32f, enemyTexture.getHeight() / 32f);
+        Transform transform = new Transform(enemyTexture.getWidth() / 32f, enemyTexture.getHeight() / 32f);
         enemy.add(transform);
-        Graphic graphic = new Graphic();
-        graphic.texture = enemyTexture;
-        enemy.add(graphic);
-        Move move = new Move();
-        move.speed = ENEMY_SPEED;
-        enemy.add(move);
+        enemy.add(new Graphic(enemyTexture));
+        enemy.add(new Move(1.5f));
         getEngine().addEntity(enemy);
 
         int edge = MathUtils.random(3); // 0: top, 1: right, 2: bottom, 3: left

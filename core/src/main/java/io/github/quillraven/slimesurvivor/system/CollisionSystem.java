@@ -52,7 +52,7 @@ public class CollisionSystem extends EntitySystem {
         }
 
         if (numHits > 0) {
-            player.lifes -= (DAMAGE_PER_SECOND * numHits * deltaTime);
+            player.lives -= (DAMAGE_PER_SECOND * numHits * deltaTime);
             if (player.isDead()) {
                 getEngine().getSystem(SpawnSystem.class).setProcessing(false);
                 getEngine().getSystem(MoveSystem.class).setProcessing(false);

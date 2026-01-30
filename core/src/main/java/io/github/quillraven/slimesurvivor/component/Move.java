@@ -5,5 +5,9 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Move implements Component {
     public final Vector2 direction = new Vector2();
-    public float speed = 0f;
+    public float speed;
+
+    public Move(float speed) {
+        this.speed = speed;
+    }
 }
