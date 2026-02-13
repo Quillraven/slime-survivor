@@ -4,7 +4,7 @@
 
 ### Description
 
-A very basic "Vampire Survivors" clone for a [LibGDX](https://libgdx.com/) tutorial on my [Youtube](https://www.youtube.com/@Quillraven) channel.
+A very basic "Vampire Survivors" clone for a [LibGDX](https://libgdx.com/) tutorial on my [Youtube](https://www.youtube.com/watch?v=3BC8E6SbveM) channel.
 It is meant to be like the "A simple game" tutorial of the official LibGDX wiki but more exciting.
 
 The project demonstrates core LibGDX concepts including:
